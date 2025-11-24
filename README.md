@@ -115,3 +115,58 @@ button:hover {
 .slider img:hover {
   transform: scale(1.1);
 }
+const generateBtn = document.getElementById("generateBtn");
+const promptInput = document.getElementById("prompt");
+const resultDiv = document.getElementById("result");
+const progressBarContainer = document.getElementById("progressBarContainer");
+const progressBar = document.getElementById("progressBar");
+
+let userQuota = 3; // Her kullanıcı için 3 görsel hakkı
+
+generateBtn.addEventListener("click", async () => {
+  const prompt = promptInput.value.trim();
+  if (!prompt) {
+    alert("Lütfen bir prompt yaz!");
+    return;
+  }
+  if (userQuota <= 0) {
+    alert("Üzgünüz, günlük görsel hakkınızı kullandınız!");
+    return;
+  }
+
+  // Loading bar göster
+  progressBarContainer.style.display = "block";
+  progressBar.style.width = "0%";
+
+  // Simülasyon: loading bar 3 saniye
+  let width = 0;
+  const interval = setInterval(() => {
+    width += 5;
+    progressBar.style.width = width + "%";
+    if (width >= 100) clearInterval(interval);
+  }, 150);
+
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
+    });
+
+    const data = await res.json();
+    const img = document.createElement("img");
+    img.src = data.image;
+    resultDiv.innerHTML = "";
+    resultDiv.appendChild(img);
+
+    userQuota--;
+  } catch (err) {
+    alert("Bir hata oluştu, tekrar deneyin!");
+    console.error(err);
+  } finally {
+    progressBarContainer.style.display = "none";
+    progressBar.style.width = "0%";
+  }
+});
